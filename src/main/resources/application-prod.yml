@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 正式環境：PostgreSQL + Redis，所有機密都從環境變數讀取（見 .env.example）
+# ─────────────────────────────────────────────────────────────────────────────
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  liquibase:
+    contexts: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  # 寄信（忘記密碼、信箱驗證）上線時再加入：spring.mail.host / port / username / password
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          line:
+            client-id: ${LINE_CHANNEL_ID}
+            client-secret: ${LINE_CHANNEL_SECRET}
+            scope: openid, profile, email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: LINE
+        provider:
+          line:
+            authorization-uri: https://access.line.me/oauth2/v2.1/authorize
+            token-uri: https://api.line.me/oauth2/v2.1/token
+            user-info-uri: https://api.line.me/v2/profile
+            user-name-attribute: sub
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

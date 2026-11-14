@@ -1,0 +1,17 @@
+# 自動化測試：每次測試用全新的 H2 記憶體資料庫
+spring:
+  datasource:
+    url: jdbc:h2:mem:sslecture-test;MODE=PostgreSQL;NON_KEYWORDS=YEAR;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  liquibase:
+    contexts: test
+
+management:
+  health:
+    redis:
+      enabled: false
+
+app:
+  jwt:
+    secret: dGVzdC1vbmx5LXNlY3JldC1kby1ub3QtdXNlLWluLXByb2R1Y3Rpb24tMTIzNDU2Nzg=

@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 本地開發：H2 檔案資料庫（PostgreSQL 相容模式），資料存在 ./data，重啟後保留。
+# 想從頭來過就刪掉 ./data 資料夾，Liquibase 會重新建表並灌入種子資料。
+# H2 主控台：http://localhost:8080/h2-console（JDBC URL 同下方 url，帳號 sa、無密碼）
+# ─────────────────────────────────────────────────────────────────────────────
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/sslecture-dev;MODE=PostgreSQL;NON_KEYWORDS=YEAR;DEFAULT_NULL_ORDERING=HIGH;AUTO_SERVER=TRUE
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  liquibase:
+    contexts: dev
+  jpa:
+    show-sql: false
+  data:
+    redis:
+      # 本機沒有 Redis 也能啟動；用到 Redis 的功能（社群登入 code）才需要
+      host: ${REDIS_HOST:localhost}
+
+management:
+  health:
+    redis:
+      enabled: false
+
+app:
+  jwt:
+    # 只供本地開發，正式環境必須以環境變數 JWT_SECRET 提供
+    secret: ${JWT_SECRET:ZGV2LW9ubHktc2VjcmV0LWRvLW5vdC11c2UtaW4tcHJvZHVjdGlvbi0xMjM0NTY3OA==}
+
+logging:
+  level:
+    com.sslecture: DEBUG

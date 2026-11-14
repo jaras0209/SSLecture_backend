@@ -1,0 +1,24 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Liquibase 主 changelog
+#
+# 規則：
+#   1. 已套用（已進 main）的 changeset 不可再修改，要改結構就新增一個 changeset 檔
+#   2. 檔名：NNN-簡述.sql，依序 include
+#   3. SQL 須同時能在 H2（PostgreSQL 模式，本地開發 / 測試）與 PostgreSQL（正式）執行；
+#      兩邊語法不同的地方用下方的 property，或在 changeset 加 dbms:h2 / dbms:postgresql
+#   4. contexts：dev = 本地開發測試資料；test = 自動化測試；prod = 正式。未標 context 的 changeset 全部環境都跑
+# ─────────────────────────────────────────────────────────────────────────────
+databaseChangeLog:
+  # UUID 預設值
+  - property: { name: uuid_fn, value: "gen_random_uuid()", dbms: postgresql }
+  - property: { name: uuid_fn, value: "RANDOM_UUID()", dbms: h2 }
+  # 字串陣列（booking_sessions.prep_scriptures）
+  - property: { name: text_array, value: "TEXT[]", dbms: postgresql }
+  - property: { name: text_array, value: "CHARACTER VARYING ARRAY", dbms: h2 }
+  - property: { name: empty_text_array, value: "'{}'", dbms: postgresql }
+  - property: { name: empty_text_array, value: "ARRAY[]", dbms: h2 }
+
+  - include: { file: changes/001-initial-schema.sql, relativeToChangelogFile: true }
+  - include: { file: changes/002-regex-constraints.sql, relativeToChangelogFile: true }
+  - include: { file: changes/003-seed-reference-data.sql, relativeToChangelogFile: true }
+  - include: { file: changes/004-seed-dev-users.sql, relativeToChangelogFile: true }

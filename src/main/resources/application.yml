@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 共用設定。環境差異放在 application-{profile}.yml：
+#   dev  ：本地開發（H2 檔案資料庫，預設啟用）
+#   test ：自動化測試（H2 記憶體資料庫）
+#   prod ：正式環境（PostgreSQL + Redis），以 SPRING_PROFILES_ACTIVE=prod 啟用
+# ─────────────────────────────────────────────────────────────────────────────
+spring:
+  application:
+    name: sslecture-backend
+  profiles:
+    default: dev
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # 資料表結構一律由 Liquibase 管理，Hibernate 只驗證不修改
+      ddl-auto: validate
+    properties:
+      hibernate:
+        # 系統時間戳記一律以 UTC 存取（使用者選的牆上時間以 Asia/Taipei 在程式中轉換，見 database_schema.md 5.14）
+        jdbc.time_zone: UTC
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    # 未指定 contexts 時 Liquibase 會執行「所有」changeset（包含開發用測試帳號），
+    # 所以這裡預設 prod，dev / test profile 再覆寫
+    contexts: ${LIQUIBASE_CONTEXTS:prod}
+
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  # 牆上時間一律以 Asia/Taipei 解讀，見 com.sslecture.common.time.WallClockTime
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry: 1h
+    refresh-token-expiry-default: 2h      # 未勾「記住我」：閒置 2 小時
+    refresh-token-expiry-remember: 30d    # 勾選「記住我」：30 天
+  oauth:
+    exchange-code-ttl: 60s
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+    callback-path: /login/callback
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
