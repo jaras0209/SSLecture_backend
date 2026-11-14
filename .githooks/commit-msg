@@ -1,0 +1,25 @@
+#!/bin/sh
+# 檢查 commit 訊息是否符合 Conventional Commits（https://www.conventionalcommits.org/）
+# 啟用方式（clone 後執行一次）：git config core.hooksPath .githooks
+
+msg_file="$1"
+first_line=$(head -n 1 "$msg_file")
+
+# git 自動產生的 merge / revert / fixup 訊息直接放行
+case "$first_line" in
+  Merge\ *|Revert\ *|fixup!\ *|squash!\ *) exit 0 ;;
+esac
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: .+'
+
+if ! printf '%s' "$first_line" | grep -Eq "$pattern"; then
+  echo "✖ commit 訊息不符合 Conventional Commits 格式：" >&2
+  echo "    $first_line" >&2
+  echo "" >&2
+  echo "  格式：<type>(<scope>)?: <描述>" >&2
+  echo "  type：feat fix docs style refactor perf test build ci chore revert" >&2
+  echo "  例如：feat(auth): 新增帳號密碼登入 API" >&2
+  echo "        fix(booking): 修正已取消場次仍可確認的問題" >&2
+  echo "        feat(api)!: 調整回應格式（! 表示破壞性變更）" >&2
+  exit 1
+fi
