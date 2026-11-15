@@ -34,6 +34,8 @@ public enum ErrorCode {
   WEAK_PASSWORD(HttpStatus.BAD_REQUEST, "密碼不符合密碼規則"),
   PASSWORD_CHANGE_REQUIRED(HttpStatus.FORBIDDEN, "請先修改密碼"),
   ATTENDEE_ALREADY_EXISTS(HttpStatus.CONFLICT, "該學員已加入此場次"),
+  CHURCH_REQUIRED(HttpStatus.BAD_REQUEST, "請選擇所屬教會"),
+  INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "邀請碼無效、過期或已作廢"),
   INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "伺服器內部錯誤");
 
   private final HttpStatus status;

@@ -25,8 +25,19 @@ class SslectureBackendApplicationTests {
     assertThat(count("churches")).isEqualTo(19);
     assertThat(count("courses")).isEqualTo(30);
     assertThat(count("themes")).isEqualTo(8);
-    assertThat(count("users")).isEqualTo(5);
-    assertThat(count("parent_children")).isEqualTo(1);
+    // 其他測試會註冊新帳號，所以只算種子帳號
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE username IN"
+                    + " ('student', 'teacher', 'pastor', 'parent', 'admin')",
+                Integer.class))
+        .isEqualTo(5);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT COUNT(*) FROM parent_children pc JOIN users p ON p.id = pc.parent_id"
+                    + " WHERE p.username = 'parent'",
+                Integer.class))
+        .isEqualTo(1);
   }
 
   @Test

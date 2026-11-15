@@ -1,11 +1,16 @@
 package com.sslecture.config;
 
+import com.sslecture.auth.jwt.JwtAuthenticationFilter;
+import com.sslecture.auth.jwt.JwtService;
+import com.sslecture.auth.session.SessionService;
 import com.sslecture.common.api.ErrorCode;
 import com.sslecture.common.api.JsonErrorWriter;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,6 +18,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,7 +29,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * 安全性設定：無狀態（JWT 以 Authorization 標頭傳送，不用 Cookie 與 Session）。
  *
- * <p>JWT 驗證過濾器與社群登入（oauth2Login）在實作認證功能時加入，見前端 docs/oauth2_social_login_spec.md 第 5 節。
+ * <p>Access Token 由 {@link JwtAuthenticationFilter} 驗證。社群登入（oauth2Login）之後加入，見前端
+ * docs/oauth2_social_login_spec.md 第 5 節。
  */
 @Configuration
 @EnableWebSecurity
@@ -44,14 +54,34 @@ public class SecurityConfig {
     "/error"
   };
 
+  /** 須先修改密碼（mustChangePassword）時仍可呼叫的 API（backend_api_spec.md {@code POST /auth/login}）。 */
+  private static final RequestMatcher PASSWORD_CHANGE_ALLOWED =
+      new OrRequestMatcher(
+          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/reset-password"),
+          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/auth/logout"),
+          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/auth/me"));
+
   @Bean
   SecurityFilterChain securityFilterChain(
       HttpSecurity http,
       CorsConfigurationSource corsConfigurationSource,
       JsonErrorWriter errorWriter,
+      JwtService jwtService,
+      SessionService sessionService,
       @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled)
       throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
+    RequestMatcher publicEndpoints =
+        new OrRequestMatcher(
+            Arrays.stream(PUBLIC_ENDPOINTS)
+                .map(p -> (RequestMatcher) PathPatternRequestMatcher.withDefaults().matcher(p))
+                .toList());
+    // 不註冊成 Bean：Spring Boot 會把 Filter Bean 另外掛到 Servlet 容器，導致每個請求跑兩次
+    var jwtFilter =
+        new JwtAuthenticationFilter(
+            jwtService, sessionService, errorWriter, publicEndpoints, PASSWORD_CHANGE_ALLOWED);
+
+    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .httpBasic(AbstractHttpConfigurer::disable)
