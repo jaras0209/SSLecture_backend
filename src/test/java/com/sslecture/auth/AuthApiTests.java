@@ -648,4 +648,81 @@ class AuthApiTests {
           .andExpect(jsonPath("$.error.code").value("EMAIL_TAKEN"));
     }
   }
+
+  @Nested
+  class FieldLimits {
+
+    @Test
+    void identifierLongerThanAnEmailIsRejected() throws Exception {
+      login("a".repeat(255), "123456")
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
+          .andExpect(jsonPath("$.error.message").value("identifier：最多 254 個字元"));
+    }
+
+    @Test
+    void newPasswordLongerThan64IsWeak() throws Exception {
+      postJson(
+              "/auth/register",
+              """
+              {"username": "longpw", "password": "%s", "church": "愛與話語"}\
+              """
+                  .formatted("Aa1" + "x".repeat(62)))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.error.code").value("WEAK_PASSWORD"));
+    }
+
+    @Test
+    void adminResetPasswordLongerThan64IsRejected() throws Exception {
+      String username = registerStudent();
+      String[] admin = tokens("admin", "123456");
+      resetPassword(
+              admin[0],
+              """
+              {"username": "%s", "newPassword": "%s"}\
+              """
+                  .formatted(username, "x".repeat(65)))
+          .andExpect(jsonPath("$.error.code").value("WEAK_PASSWORD"));
+    }
+
+    @Test
+    void inviteCodeLongerThan20IsRejected() throws Exception {
+      postJson(
+              "/auth/register",
+              """
+              {"username": "longcode", "password": "%s", "inviteCode": "%s"}\
+              """
+                  .formatted(STRONG_PASSWORD, "X".repeat(21)))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.error.message").value("inviteCode：最多 20 個字元"));
+    }
+
+    @Test
+    void profileNamesFollowTheirLimits() throws Exception {
+      String username = registerStudent();
+      String[] t = tokens(username, STRONG_PASSWORD);
+
+      mvc.perform(
+              bearer(patch("/auth/me"), t[0])
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(
+                      """
+                      {"displayName": "%s", "realName": "%s"}\
+                      """
+                          .formatted("暱".repeat(20), "名".repeat(50))))
+          .andExpect(status().isOk());
+      mvc.perform(
+              bearer(patch("/auth/me"), t[0])
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"displayName\": \"%s\"}".formatted("暱".repeat(21))))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.error.message").value("displayName：最多 20 個字元"));
+      mvc.perform(
+              bearer(patch("/auth/me"), t[0])
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"realName\": \"%s\"}".formatted("名".repeat(51))))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.error.message").value("realName：最多 50 個字元"));
+    }
+  }
 }

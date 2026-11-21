@@ -17,8 +17,12 @@ databaseChangeLog:
   - property: { name: text_array, value: "CHARACTER VARYING ARRAY", dbms: h2 }
   - property: { name: empty_text_array, value: "'{}'", dbms: postgresql }
   - property: { name: empty_text_array, value: "ARRAY[]", dbms: h2 }
+  # 每段最多 100 字的字串陣列（005 起的 booking_sessions.prep_scriptures）
+  - property: { name: varchar100_array, value: "VARCHAR(100)[]", dbms: postgresql }
+  - property: { name: varchar100_array, value: "CHARACTER VARYING(100) ARRAY", dbms: h2 }
 
   - include: { file: changes/001-initial-schema.sql, relativeToChangelogFile: true }
   - include: { file: changes/002-regex-constraints.sql, relativeToChangelogFile: true }
   - include: { file: changes/003-seed-reference-data.sql, relativeToChangelogFile: true }
   - include: { file: changes/004-seed-dev-users.sql, relativeToChangelogFile: true }
+  - include: { file: changes/005-field-limits-and-record-rules.sql, relativeToChangelogFile: true }

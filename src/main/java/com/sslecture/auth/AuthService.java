@@ -126,6 +126,7 @@ public class AuthService {
     InviteCode invite = null;
     String code =
         request.inviteCode() == null ? "" : request.inviteCode().strip().toUpperCase(Locale.ROOT);
+    AccountRules.checkLength("inviteCode", code, AccountRules.INVITE_CODE_MAX);
     if (!code.isEmpty()) {
       limiter.check(AuthAction.INVITE_CODE, null, ip);
       OffsetDateTime now = now();
@@ -249,6 +250,7 @@ public class AuthService {
     if (!user.hasPassword()) {
       throw AccountRules.invalid("username", "此帳號使用 Google / LINE 登入，不能重設密碼");
     }
+    AccountRules.checkPasswordLength(newPassword);
     user.setPasswordHash(passwordEncoder.encode(newPassword));
     user.setMustChangePassword(true);
     user.invalidateAllSessions();

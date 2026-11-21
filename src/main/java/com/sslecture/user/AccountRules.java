@@ -14,10 +14,21 @@ public final class AccountRules {
 
   public static final int USERNAME_MIN = 3;
   public static final int USERNAME_MAX = 30;
-  public static final int EMAIL_MAX = 255;
-  public static final int NAME_MAX = 100;
+
+  /** 信箱；也是登入時 {@code identifier} 的上限（帳號或信箱）。 */
+  public static final int EMAIL_MAX = 254;
+
+  public static final int DISPLAY_NAME_MAX = 20;
+  public static final int REAL_NAME_MAX = 50;
   public static final int AVATAR_URL_MAX = 2048;
+  public static final int INVITE_CODE_MAX = 20;
   public static final int PASSWORD_MIN = 6;
+
+  /** 設定新密碼的上限：bcrypt 只取前 72 個位元組，超過的部分會被忽略。 */
+  public static final int PASSWORD_MAX = 64;
+
+  /** 登入時密碼欄位的上限：比 {@link #PASSWORD_MAX} 寬，讓既有的較長密碼仍能輸入。 */
+  public static final int LOGIN_PASSWORD_MAX = 128;
 
   private static final Pattern USERNAME = Pattern.compile("^[a-z0-9._-]+$");
   private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
@@ -48,7 +59,8 @@ public final class AccountRules {
     if (email.isEmpty()) {
       return;
     }
-    if (email.length() > EMAIL_MAX || !EMAIL.matcher(email).matches()) {
+    checkLength("email", email, EMAIL_MAX);
+    if (!EMAIL.matcher(email).matches()) {
       throw invalid("email", "信箱格式不正確");
     }
   }
@@ -61,24 +73,23 @@ public final class AccountRules {
     if (!avatarUrl.startsWith("https://")) {
       throw invalid("avatarUrl", "只接受 https:// 開頭的網址");
     }
-    if (avatarUrl.length() > AVATAR_URL_MAX) {
-      throw invalid("avatarUrl", "網址最長 " + AVATAR_URL_MAX + " 個字元");
-    }
+    checkLength("avatarUrl", avatarUrl, AVATAR_URL_MAX);
   }
 
-  public static void checkName(String field, String value) {
-    if (value.length() > NAME_MAX) {
-      throw invalid(field, "最長 " + NAME_MAX + " 個字元");
+  /** 長度上限（backend_api_spec.md〈欄位長度上限〉）。以字元計算，與 PostgreSQL 的 {@code VARCHAR(n)} 相同，中文與英文都算 1 個。 */
+  public static void checkLength(String field, String value, int max) {
+    if (value != null && value.codePointCount(0, value.length()) > max) {
+      throw invalid(field, "最多 " + max + " 個字元");
     }
   }
 
   /**
-   * 使用者自己設定的密碼：至少 6 個字元，且符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號。
+   * 使用者自己設定的密碼：6–64 個字元，且符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號。
    *
-   * <p>管理員設定的密碼不受此限（使用者下次登入須先更換）。
+   * <p>管理員設定的密碼不受強度限制（使用者下次登入須先更換），但同樣不可超過 64 個字元，見 {@link #checkPasswordLength}。
    */
   public static boolean isStrongEnough(String password) {
-    if (password == null || password.length() < PASSWORD_MIN) {
+    if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
       return false;
     }
     int met = 0;
@@ -99,6 +110,13 @@ public final class AccountRules {
 
   public static void checkPasswordStrength(String password) {
     if (!isStrongEnough(password)) {
+      throw new BusinessException(ErrorCode.WEAK_PASSWORD);
+    }
+  }
+
+  /** 管理員設定的密碼只檢查上限；超過時同樣回 {@code WEAK_PASSWORD}（backend_api_spec.md〈密碼規則〉）。 */
+  public static void checkPasswordLength(String password) {
+    if (password.length() > PASSWORD_MAX) {
       throw new BusinessException(ErrorCode.WEAK_PASSWORD);
     }
   }

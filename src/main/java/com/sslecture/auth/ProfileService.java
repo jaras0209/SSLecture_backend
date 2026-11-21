@@ -43,10 +43,10 @@ public class ProfileService {
     String email = request.email() == null ? null : AccountRules.normalize(request.email());
 
     if (displayName != null) {
-      AccountRules.checkName("displayName", displayName);
+      AccountRules.checkLength("displayName", displayName, AccountRules.DISPLAY_NAME_MAX);
     }
     if (realName != null) {
-      AccountRules.checkName("realName", realName);
+      AccountRules.checkLength("realName", realName, AccountRules.REAL_NAME_MAX);
     }
     if (avatarUrl != null) {
       AccountRules.checkAvatarUrl(avatarUrl);

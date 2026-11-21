@@ -49,10 +49,10 @@ public class User {
   @JoinColumn(name = "church_id")
   private Church church;
 
-  @Column(name = "display_name", length = 100)
+  @Column(name = "display_name", length = AccountRules.DISPLAY_NAME_MAX)
   private String displayName;
 
-  @Column(name = "real_name", length = 100)
+  @Column(name = "real_name", length = AccountRules.REAL_NAME_MAX)
   private String realName;
 
   @Column(length = 10)
