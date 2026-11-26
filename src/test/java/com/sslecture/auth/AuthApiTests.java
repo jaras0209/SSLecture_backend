@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * 認證 API 的整合測試（H2 + 種子帳號，密碼都是 123456）。
+ * 認證 API 的整合測試（MySQL + 種子帳號，密碼都是 123456）。
  *
  * <p>測試共用同一個資料庫，所以會改變帳號的測試都先註冊自己的帳號，不動種子帳號。
  */
@@ -296,7 +296,7 @@ class AuthApiTests {
           .andExpect(status().isOk());
       Integer days =
           jdbc.queryForObject(
-              "SELECT DATEDIFF('DAY', t.last_used_at, t.expires_at) FROM refresh_tokens t"
+              "SELECT TIMESTAMPDIFF(DAY, t.last_used_at, t.expires_at) FROM refresh_tokens t"
                   + " JOIN users u ON u.id = t.user_id WHERE u.username = ?",
               Integer.class,
               username);

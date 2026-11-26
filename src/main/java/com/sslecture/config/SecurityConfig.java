@@ -7,7 +7,6 @@ import com.sslecture.common.api.ErrorCode;
 import com.sslecture.common.api.JsonErrorWriter;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -67,8 +66,7 @@ public class SecurityConfig {
       CorsConfigurationSource corsConfigurationSource,
       JsonErrorWriter errorWriter,
       JwtService jwtService,
-      SessionService sessionService,
-      @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled)
+      SessionService sessionService)
       throws Exception {
     RequestMatcher publicEndpoints =
         new OrRequestMatcher(
@@ -94,16 +92,8 @@ public class SecurityConfig {
                     (request, response, ex) -> errorWriter.write(response, ErrorCode.FORBIDDEN)))
         .authorizeHttpRequests(auth -> {
           auth.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
-          if (h2ConsoleEnabled) {
-            auth.requestMatchers("/h2-console/**").permitAll();
-          }
           auth.anyRequest().authenticated();
         });
-
-    if (h2ConsoleEnabled) {
-      // H2 主控台以 iframe 呈現，只在本地開發開放同源嵌入
-      http.headers(h -> h.frameOptions(f -> f.sameOrigin()));
-    }
     return http.build();
   }
 

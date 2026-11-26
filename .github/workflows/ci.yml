@@ -1,0 +1,52 @@
+name: CI
+
+# 每次推送與 PR：在 MySQL 8.4 上跑全部測試，並檢查程式碼格式（./mvnw verify 含 spotless:check）
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root # 只用於這個暫時的測試容器
+          MYSQL_DATABASE: sslecture_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # 測試連到上面的 MySQL 服務（不用 Testcontainers）；字元集、定序由 Liquibase 的 000 changeset 設定
+      - name: Test and check formatting
+        env:
+          TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/sslecture_test
+          TEST_DB_USERNAME: root
+          TEST_DB_PASSWORD: root
+        run: ./mvnw -B verify
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7

@@ -1,11 +1,19 @@
-# 自動化測試：每次測試用全新的 H2 記憶體資料庫
+# ─────────────────────────────────────────────────────────────────────────────
+# 自動化測試：在真正的 MySQL 8.4 上執行（CHECK、唯一索引等規則由資料庫守住，H2 測不出來）。
+#   * 預設：Testcontainers 以 Docker 啟動 mysql:8.4（需要 Docker），整個測試共用一個
+#   * 設定 TEST_DB_URL 時改連那個資料庫（CI 使用 GitHub Actions 的 MySQL 服務）；
+#     測試開始時會清空整個資料庫（drop-first），只能指向專門給測試的資料庫
+# ─────────────────────────────────────────────────────────────────────────────
 spring:
   datasource:
-    url: jdbc:h2:mem:sslecture-test;MODE=PostgreSQL;NON_KEYWORDS=YEAR;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
+    url: ${TEST_DB_URL:jdbc:tc:mysql:8.4:///sslecture_test}
+    username: ${TEST_DB_USERNAME:test}
+    password: ${TEST_DB_PASSWORD:test}
   liquibase:
     contexts: test
+    # 每次測試先清空再建表，和以前的 H2 記憶體資料庫一樣從頭開始（測試會留下註冊的帳號等資料）。
+    # 只會清空測試用的資料庫，所以 TEST_DB_URL 不可指向開發或正式的資料庫
+    drop-first: true
 
 management:
   health:

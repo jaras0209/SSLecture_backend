@@ -1,0 +1,22 @@
+# 本地開發用的 MySQL 8.4：docker compose up -d（停止：docker compose down；連資料一起刪除：docker compose down -v）
+# 帳號密碼只給本機開發用，與 application-dev.yml 的預設值相同
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: sslecture
+      MYSQL_USER: sslecture
+      MYSQL_PASSWORD: sslecture
+      MYSQL_ROOT_PASSWORD: sslecture-root
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_as_cs
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  mysql-data:

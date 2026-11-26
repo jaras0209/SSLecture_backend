@@ -10,7 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-/** 以 H2 啟動整個應用程式，確認 Liquibase 建表、種子資料與約束都正常。 */
+/** 在 MySQL 上啟動整個應用程式，確認 Liquibase 建表、種子資料與約束都正常。 */
 @SpringBootTest
 @ActiveProfiles("test")
 class SslectureBackendApplicationTests {
@@ -48,12 +48,19 @@ class SslectureBackendApplicationTests {
   }
 
   @Test
-  void emailMustBeStoredLowercase() {
-    assertThatThrownBy(() ->
-            jdbc.update(
-                "INSERT INTO users (username, role, email) VALUES ('mail.test', 'student',"
-                    + " 'Upper@Example.com')"))
-        .isInstanceOf(DataIntegrityViolationException.class);
+  void emailIsUniqueIgnoringCase() {
+    jdbc.update(
+        "INSERT INTO users (username, role, email) VALUES ('mail.one', 'student',"
+            + " 'same@example.com')");
+    try {
+      assertThatThrownBy(() ->
+              jdbc.update(
+                  "INSERT INTO users (username, role, email) VALUES ('mail.two', 'student',"
+                      + " 'Same@Example.com')"))
+          .isInstanceOf(DataIntegrityViolationException.class);
+    } finally {
+      jdbc.update("DELETE FROM users WHERE username = 'mail.one'");
+    }
   }
 
   private int count(String table) {

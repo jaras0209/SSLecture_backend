@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "https://www.springframework.org/dtd/spring-beans-2.0.dtd">
+
+<!--
+  Spring JDBC 的 MySQL 錯誤碼對照（取代 spring-jdbc 內建的 "MySQL" 設定，其餘資料庫不變）。
+  內建的對照沒有下列錯誤碼，資料庫的規則被違反時會成為 UncategorizedSQLException，而不是 DataIntegrityViolationException：
+    3819：CHECK 不符（帳號格式、日期規則等，見前端 docs/database_schema.md 第 6 節）
+    1265：值不在 ENUM 允許的範圍內
+    3140：不是有效的 JSON
+  其餘數字照抄 spring-jdbc 7.1 的內建值；升級 Spring 時可比對該版本的 org/springframework/jdbc/support/sql-error-codes.xml。
+-->
+<beans>
+	<bean id="MySQL" class="org.springframework.jdbc.support.SQLErrorCodes">
+		<property name="databaseProductNames">
+			<list>
+				<value>MySQL</value>
+				<value>MariaDB</value>
+			</list>
+		</property>
+		<property name="badSqlGrammarCodes">
+			<value>1054,1064,1146</value>
+		</property>
+		<property name="duplicateKeyCodes">
+			<value>1062</value>
+		</property>
+		<property name="dataIntegrityViolationCodes">
+			<value>630,839,840,893,1169,1215,1216,1217,1265,1364,1451,1452,1557,3140,3819</value>
+		</property>
+		<property name="dataAccessResourceFailureCodes">
+			<value>1</value>
+		</property>
+		<property name="cannotAcquireLockCodes">
+			<value>1205,3572</value>
+		</property>
+		<property name="deadlockLoserCodes">
+			<value>149,1213</value>
+		</property>
+	</bean>
+</beans>

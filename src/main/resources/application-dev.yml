@@ -1,17 +1,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# 本地開發：H2 檔案資料庫（PostgreSQL 相容模式），資料存在 ./data，重啟後保留。
-# 想從頭來過就刪掉 ./data 資料夾，Liquibase 會重新建表並灌入種子資料。
-# H2 主控台：http://localhost:8080/h2-console（JDBC URL 同下方 url，帳號 sa、無密碼）
+# 本地開發：Docker 的 MySQL 8.4（先執行 `docker compose up -d`，見 compose.yaml）。
+# 資料存在 Docker volume，重啟後保留；想從頭來過就 `docker compose down -v`，
+# Liquibase 會重新建表並灌入種子資料與示範帳號。
+# 要連到其他 MySQL 時以 DB_URL、DB_USERNAME、DB_PASSWORD 覆寫。
 # ─────────────────────────────────────────────────────────────────────────────
 spring:
   datasource:
-    url: jdbc:h2:file:./data/sslecture-dev;MODE=PostgreSQL;NON_KEYWORDS=YEAR;DEFAULT_NULL_ORDERING=HIGH;AUTO_SERVER=TRUE
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: ${DB_URL:jdbc:mysql://localhost:3306/sslecture}
+    username: ${DB_USERNAME:sslecture}
+    password: ${DB_PASSWORD:sslecture}
   liquibase:
     contexts: dev
   jpa:

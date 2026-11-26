@@ -1,14 +1,23 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 共用設定。環境差異放在 application-{profile}.yml：
-#   dev  ：本地開發（H2 檔案資料庫，預設啟用）
-#   test ：自動化測試（H2 記憶體資料庫）
-#   prod ：正式環境（PostgreSQL + Redis），以 SPRING_PROFILES_ACTIVE=prod 啟用
+#   dev  ：本地開發（Docker 的 MySQL 8.4，見 compose.yaml；預設啟用）
+#   test ：自動化測試（Testcontainers 的 MySQL 8.4，或 TEST_DB_URL 指定的資料庫）
+#   prod ：正式環境（MySQL 8.4 + Redis），以 SPRING_PROFILES_ACTIVE=prod 啟用
 # ─────────────────────────────────────────────────────────────────────────────
 spring:
   application:
     name: sslecture-backend
   profiles:
     default: dev
+
+  datasource:
+    hikari:
+      # MySQL 連線設定（前端 docs/database_schema.md 第 6 節的設定表）：
+      # DATETIME 不記時區，連線時區一律 UTC，DEFAULT CURRENT_TIMESTAMP 也以 UTC 取值；文字以 utf8mb4 傳送
+      data-source-properties:
+        connectionTimeZone: UTC
+        forceConnectionTimeZoneToSession: true
+        characterEncoding: UTF-8
 
   jpa:
     open-in-view: false
@@ -19,6 +28,8 @@ spring:
       hibernate:
         # 系統時間戳記一律以 UTC 存取（使用者選的牆上時間以 Asia/Taipei 在程式中轉換，見 database_schema.md 5.14）
         jdbc.time_zone: UTC
+        # 識別碼存成 UUID 字串 CHAR(36)（MySQL 預設會對應 BINARY(16)）
+        type.preferred_uuid_jdbc_type: CHAR
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml

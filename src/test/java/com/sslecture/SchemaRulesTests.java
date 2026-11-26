@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 資料庫守住的規則（changeset 005；database_schema.md 5.16、5.17）。
+ * 資料庫守住的規則（changeset 001；database_schema.md 5.16、5.17）。
  *
  * <p>每個測試在交易中執行並回滾，不留下資料。
  */
@@ -89,9 +89,9 @@ class SchemaRulesTests {
                 "INSERT INTO booking_sessions (teacher_id, course_title, lecturer_name,"
                     + " proposed_at, prep_scriptures) VALUES ("
                     + TEACHER
-                    + ", '聖經時觀', '張牧師', CURRENT_TIMESTAMP + INTERVAL '1' DAY, ARRAY['"
+                    + ", '聖經時觀', '張牧師', CURRENT_TIMESTAMP + INTERVAL '1' DAY, JSON_ARRAY('"
                     + "經".repeat(101)
-                    + "'])"))
+                    + "'))"))
         .isInstanceOf(DataIntegrityViolationException.class);
   }
 
