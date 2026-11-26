@@ -20,6 +20,8 @@ public enum ErrorCode {
   FORBIDDEN(HttpStatus.FORBIDDEN, "沒有權限執行此操作"),
   STUDENT_NOT_VISIBLE(HttpStatus.FORBIDDEN, "無法存取此學員"),
   BOOKING_NOT_CONFIRMED(HttpStatus.CONFLICT, "場次時間尚未確認"),
+  LECTURER_EXISTS(HttpStatus.CONFLICT, "這間教會已有同名、同稱謂的講師"),
+  LECTURER_ACCOUNT_LINKED(HttpStatus.CONFLICT, "這個帳號已連結到另一筆講師資料"),
   ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "帳號已被停用"),
   USER_NOT_FOUND(HttpStatus.NOT_FOUND, "找不到此使用者"),
   COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "找不到此課程"),

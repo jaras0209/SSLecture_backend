@@ -2,7 +2,7 @@
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 資料表（文件第 6 節）：22 張表與索引
--- 由前端 docs/database_schema.md（v1.16.0）產生，內容與文件相同；文件的 SQL 由前端 CI 在 MySQL 8.4 實測（scripts/check-schema.py）。
+-- 由前端 docs/database_schema.md（v1.16.1）產生，內容與文件相同；文件的 SQL 由前端 CI 在 MySQL 8.4 實測（scripts/check-schema.py）。
 -- 上線後不修改已執行的 changeset：結構變更新增 changeset，並同步更新前端文件第 6 節。
 -- ═════════════════════════════════════════════════════════════════════════════
 
@@ -194,7 +194,7 @@ CREATE TABLE themes (
   sort_order INTEGER     NOT NULL DEFAULT 0,
   is_active  BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  UNIQUE (church_id, type, name),
+  CONSTRAINT uq_themes_church_type_name UNIQUE (church_id, type, name),  -- API 的 409 THEME_EXISTS 依這個名稱判斷
   CONSTRAINT fk_themes_church FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE CASCADE
 );
 CREATE INDEX idx_themes_church_type ON themes(church_id, type);
