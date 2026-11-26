@@ -38,6 +38,8 @@ public enum ErrorCode {
   ATTENDEE_ALREADY_EXISTS(HttpStatus.CONFLICT, "該學員已加入此場次"),
   CHURCH_REQUIRED(HttpStatus.BAD_REQUEST, "請選擇所屬教會"),
   INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "邀請碼無效、過期或已作廢"),
+  INVITE_CODE_ALREADY_USED(HttpStatus.BAD_REQUEST, "邀請碼已被使用，無法作廢"),
+  INVITE_CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "找不到此邀請碼"),
   INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "伺服器內部錯誤");
 
   private final HttpStatus status;

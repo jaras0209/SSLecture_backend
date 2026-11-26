@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,23 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   boolean existsByEmailAndIdNot(String email, UUID id);
 
   List<User> findByUsernameIn(Collection<String> usernames);
+
+  /** 啟用中的帳號（管理員的帳號列表），可依角色、教會篩選；停用的帳號只保留名稱，不列出。 */
+  @EntityGraph(attributePaths = "church")
+  @Query(
+      value =
+          """
+          select u from User u left join u.church c
+          where u.active = true and (:role is null or u.role = :role)
+            and (:church is null or c.name = :church)
+          order by u.createdAt, u.username
+          """,
+      countQuery =
+          """
+          select count(u) from User u left join u.church c
+          where u.active = true and (:role is null or u.role = :role)
+            and (:church is null or c.name = :church)
+          """)
+  org.springframework.data.domain.Page<User> findActive(
+      Role role, String church, Pageable pageable);
 }

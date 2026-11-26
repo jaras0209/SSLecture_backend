@@ -82,6 +82,11 @@ public class SessionService {
 
   /** 使用者自己改密碼：撤銷其他裝置的登入，保留目前這個。 */
   @Transactional
+  /** 結束這個帳號所有的登入（停用帳號、改角色、管理員重設密碼）。 */
+  public void revokeAll(UUID userId) {
+    repository.revokeAll(userId);
+  }
+
   public void revokeOthers(UUID userId, UUID keepSessionId) {
     repository.revokeOthers(userId, keepSessionId);
   }

@@ -15,7 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 邀請碼（database_schema.md 2.17）。管理 API 之後再加，目前只在註冊時使用。 */
+/** 邀請碼（database_schema.md 2.17）。管理員以 /admin/invite-codes 產生、作廢，註冊時使用。 */
 @Entity
 @Table(name = "invite_codes")
 @Getter
@@ -56,6 +56,26 @@ public class InviteCode {
   /** 有效：未作廢、未使用、未過期（database_schema.md 5.9）。 */
   public boolean isValid(OffsetDateTime now) {
     return !revoked && usedBy == null && expiresAt.isAfter(now);
+  }
+
+  /** 管理員產生的新邀請碼。 */
+  public static InviteCode issue(
+      String code, Role role, Church church, User createdBy, OffsetDateTime expiresAt) {
+    InviteCode invite = new InviteCode();
+    invite.code = code;
+    invite.role = role;
+    invite.church = church;
+    invite.createdBy = createdBy;
+    invite.expiresAt = expiresAt;
+    return invite;
+  }
+
+  public boolean isUsed() {
+    return usedBy != null;
+  }
+
+  public void revoke() {
+    this.revoked = true;
   }
 
   public void markUsed(User user, OffsetDateTime now) {
