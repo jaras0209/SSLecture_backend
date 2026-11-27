@@ -1,0 +1,47 @@
+# Dependabot：每週檢查套件、GitHub Actions 與開發用 Docker 映像檔的更新，自動開 PR（CI 會在 MySQL 8.4 上跑完整測試）。
+# 小版本與修補版本合成一個 PR，大版本各自一個 PR，方便逐一確認相容性。
+# 安全性更新不受下面的排程與分組限制，發現漏洞時會立即開 PR。
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:24'
+      timezone: Asia/Taipei
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: build
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:24'
+      timezone: Asia/Taipei
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+
+  # compose.yaml 的 mysql:8.4（本地開發）。正式環境與 CI 都用 8.4 LTS，只接受 8.4 的修補版本：
+  # 9.x 不是長期支援版本，要升級時與正式環境一起決定
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:24'
+      timezone: Asia/Taipei
+    ignore:
+      - dependency-name: mysql
+        update-types: [version-update:semver-major, version-update:semver-minor]
+    commit-message:
+      prefix: build

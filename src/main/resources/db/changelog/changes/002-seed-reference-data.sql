@@ -2,7 +2,8 @@
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 正式資料（文件 7.1）：教會、課程、專題主題範例。所有環境都執行
--- 由前端 docs/database_schema.md（v1.16.1）產生，內容與文件相同；文件的 SQL 由前端 CI 在 MySQL 8.4 實測（scripts/check-schema.py）。
+-- 由前端 docs/database_schema.md 產生（SSLecture_front_end 的 scripts/gen-backend-changelog.py），內容與文件相同；
+-- 文件的 SQL 由前端 CI 在 MySQL 8.4 實測（scripts/check-schema.py），前端 CI 也比對這些檔案與文件是否一致。
 -- 上線後不修改已執行的 changeset：結構變更新增 changeset，並同步更新前端文件第 6 節。
 -- ═════════════════════════════════════════════════════════════════════════════
 
